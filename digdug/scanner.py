@@ -41,7 +41,7 @@ You are a thorough text-analysis assistant. The following text has been flagged
 as highly relevant to the user's search query. Provide a detailed analysis.
 
 Respond with ONLY a JSON object (no other text):
-{{"analysis": "detailed multi-sentence analysis", "key_excerpt": "the most relevant quote from the text (max 300 chars)"}}
+{{"analysis": "detailed multi-sentence analysis", "key_excerpt": "the most relevant passage from the text — include enough surrounding context to understand the finding (up to 1000 chars)"}}
 <|eot_id|><|start_header_id|>user<|end_header_id|>
 SEARCH QUERY: {search_prompt}
 
@@ -160,7 +160,7 @@ class ProgressiveScanner:
             analysis_text, excerpt = self._deep_analyse(chunk, search_prompt)
             is_deep = True
         else:
-            excerpt = chunk.text[:300]
+            excerpt = chunk.text[:1000]
 
         finding = Finding(
             chunk_index=chunk.index,
@@ -180,15 +180,15 @@ class ProgressiveScanner:
             search_prompt=search_prompt,
             chunk_text=chunk.text[:6000],
         )
-        raw = self.client.generate(prompt, max_length=500)
+        raw = self.client.generate(prompt, max_length=800)
         parsed = self._parse_json(raw)
 
         if parsed is None:
-            return ("(deep analysis response could not be parsed)", chunk.text[:300])
+            return ("(deep analysis response could not be parsed)", chunk.text[:1000])
 
         return (
             parsed.get("analysis", ""),
-            parsed.get("key_excerpt", chunk.text[:300]),
+            parsed.get("key_excerpt", chunk.text[:1000]),
         )
 
     # ------------------------------------------------------------------
